@@ -19,6 +19,13 @@ Paste this to Claude Code along with your vault path:
 - Opens at your vault directory
 - Command palette integration
 - Ribbon icon for quick access
+- Configurable startup command
+
+## Settings
+
+Go to **Settings > Terminal Sidebar** to configure:
+
+- **Startup command**: Command to run automatically when the terminal opens (e.g., `claude --dangerously-skip-permissions`)
 
 ## Installation
 

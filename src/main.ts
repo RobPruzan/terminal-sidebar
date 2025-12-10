@@ -1,9 +1,17 @@
-import { Plugin, ItemView, WorkspaceLeaf } from 'obsidian';
+import { Plugin, ItemView, WorkspaceLeaf, PluginSettingTab, App, Setting } from 'obsidian';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 
 const VIEW_TYPE_TERMINAL = 'terminal-sidebar-view';
 const WEBSOCKET_PORT = 7681;
+
+interface TerminalSidebarSettings {
+  startupCommand: string;
+}
+
+const DEFAULT_SETTINGS: TerminalSidebarSettings = {
+  startupCommand: ''
+};
 
 class TerminalView extends ItemView {
   terminal: Terminal | null = null;
@@ -11,10 +19,12 @@ class TerminalView extends ItemView {
   ws: WebSocket | null = null;
   containerEl: HTMLElement;
   resizeObserver: ResizeObserver | null = null;
+  plugin: TerminalSidebarPlugin;
 
-  constructor(leaf: WorkspaceLeaf) {
+  constructor(leaf: WorkspaceLeaf, plugin: TerminalSidebarPlugin) {
     super(leaf);
     this.containerEl = this.contentEl;
+    this.plugin = plugin;
   }
 
   getViewType(): string {
@@ -144,12 +154,15 @@ class TerminalView extends ItemView {
 
     this.ws.onopen = () => {
       console.log('Terminal websocket connected');
-      // Run startup command after shell initializes
-      setTimeout(() => {
-        if (this.ws?.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify({ type: 'data', data: 'claude --dangerously-skip-permissions\r' }));
-        }
-      }, 500);
+      // Run startup command if configured
+      const startupCommand = this.plugin.settings.startupCommand;
+      if (startupCommand) {
+        setTimeout(() => {
+          if (this.ws?.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type: 'data', data: startupCommand + '\r' }));
+          }
+        }, 500);
+      }
     };
 
     this.ws.onmessage = (event) => {
@@ -182,9 +195,40 @@ class TerminalView extends ItemView {
   }
 }
 
+class TerminalSidebarSettingTab extends PluginSettingTab {
+  plugin: TerminalSidebarPlugin;
+
+  constructor(app: App, plugin: TerminalSidebarPlugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
+
+  display(): void {
+    const { containerEl } = this;
+    containerEl.empty();
+
+    new Setting(containerEl)
+      .setName('Startup command')
+      .setDesc('Command to run automatically when terminal opens (leave empty for none)')
+      .addText(text => text
+        .setPlaceholder('e.g., claude --dangerously-skip-permissions')
+        .setValue(this.plugin.settings.startupCommand)
+        .onChange(async (value) => {
+          this.plugin.settings.startupCommand = value;
+          await this.plugin.saveSettings();
+        }));
+  }
+}
+
 export default class TerminalSidebarPlugin extends Plugin {
+  settings: TerminalSidebarSettings;
+
   async onload() {
-    this.registerView(VIEW_TYPE_TERMINAL, (leaf) => new TerminalView(leaf));
+    await this.loadSettings();
+
+    this.registerView(VIEW_TYPE_TERMINAL, (leaf) => new TerminalView(leaf, this));
+
+    this.addSettingTab(new TerminalSidebarSettingTab(this.app, this));
 
     this.addCommand({
       id: 'open-terminal-sidebar',
@@ -193,6 +237,14 @@ export default class TerminalSidebarPlugin extends Plugin {
     });
 
     this.addRibbonIcon('terminal', 'Open terminal', () => this.activateView());
+  }
+
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings);
   }
 
   async activateView() {

@@ -6703,14 +6703,18 @@ var import_xterm = __toESM(require_xterm());
 var import_addon_fit = __toESM(require_addon_fit());
 var VIEW_TYPE_TERMINAL = "terminal-sidebar-view";
 var WEBSOCKET_PORT = 7681;
+var DEFAULT_SETTINGS = {
+  startupCommand: ""
+};
 var TerminalView = class extends import_obsidian.ItemView {
-  constructor(leaf) {
+  constructor(leaf, plugin) {
     super(leaf);
     this.terminal = null;
     this.fitAddon = null;
     this.ws = null;
     this.resizeObserver = null;
     this.containerEl = this.contentEl;
+    this.plugin = plugin;
   }
   getViewType() {
     return VIEW_TYPE_TERMINAL;
@@ -6826,11 +6830,14 @@ var TerminalView = class extends import_obsidian.ItemView {
     this.ws = new WebSocket(wsUrl);
     this.ws.onopen = () => {
       console.log("Terminal websocket connected");
-      setTimeout(() => {
-        if (this.ws?.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify({ type: "data", data: "claude --dangerously-skip-permissions\r" }));
-        }
-      }, 500);
+      const startupCommand = this.plugin.settings.startupCommand;
+      if (startupCommand) {
+        setTimeout(() => {
+          if (this.ws?.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type: "data", data: startupCommand + "\r" }));
+          }
+        }, 500);
+      }
     };
     this.ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
@@ -6857,15 +6864,37 @@ var TerminalView = class extends import_obsidian.ItemView {
     this.terminal?.dispose();
   }
 };
+var TerminalSidebarSettingTab = class extends import_obsidian.PluginSettingTab {
+  constructor(app, plugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
+  display() {
+    const { containerEl } = this;
+    containerEl.empty();
+    new import_obsidian.Setting(containerEl).setName("Startup command").setDesc("Command to run automatically when terminal opens (leave empty for none)").addText((text) => text.setPlaceholder("e.g., claude --dangerously-skip-permissions").setValue(this.plugin.settings.startupCommand).onChange(async (value) => {
+      this.plugin.settings.startupCommand = value;
+      await this.plugin.saveSettings();
+    }));
+  }
+};
 var TerminalSidebarPlugin = class extends import_obsidian.Plugin {
   async onload() {
-    this.registerView(VIEW_TYPE_TERMINAL, (leaf) => new TerminalView(leaf));
+    await this.loadSettings();
+    this.registerView(VIEW_TYPE_TERMINAL, (leaf) => new TerminalView(leaf, this));
+    this.addSettingTab(new TerminalSidebarSettingTab(this.app, this));
     this.addCommand({
       id: "open-terminal-sidebar",
       name: "Open terminal in right sidebar",
       callback: () => this.activateView()
     });
     this.addRibbonIcon("terminal", "Open terminal", () => this.activateView());
+  }
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+  async saveSettings() {
+    await this.saveData(this.settings);
   }
   async activateView() {
     const { workspace } = this.app;

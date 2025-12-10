@@ -1,0 +1,9 @@
+{
+  "id": "terminal-sidebar",
+  "name": "Terminal Sidebar",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "Embedded terminal in right sidebar with xterm.js",
+  "author": "robby",
+  "isDesktopOnly": true
+}

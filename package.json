@@ -1,0 +1,19 @@
+{
+  "name": "terminal-sidebar",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --outfile=main.js --external:obsidian --format=cjs --platform=node",
+    "dev": "esbuild src/main.ts --bundle --outfile=main.js --external:obsidian --format=cjs --platform=node --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.20.0",
+    "obsidian": "^1.4.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0"
+  }
+}

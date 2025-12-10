@@ -1,6 +1,9 @@
 # Terminal Sidebar for Obsidian
 
-Embedded terminal in Obsidian's right sidebar using xterm.js.
+Embedded terminal in Obsidian's right sidebar using xterm.js
+
+<img width="3018" height="1960" alt="CleanShot 2025-12-10 at 11 37 26@2x" src="https://github.com/user-attachments/assets/21d6b552-d298-4f0c-ba20-ff439b2e5f5c" />
+
 
 ## Quick Setup (Recommended)
 

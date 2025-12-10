@@ -6742,6 +6742,16 @@ var TerminalView = class extends import_obsidian.ItemView {
       .terminal-sidebar-container .xterm-screen {
         background: transparent !important;
       }
+      .terminal-sidebar-container .xterm-helper-textarea {
+        opacity: 0 !important;
+      }
+      .terminal-sidebar-container .xterm-char-measure-element,
+      .terminal-sidebar-container .xterm-width-cache-measure-container {
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        visibility: hidden !important;
+      }
     `;
     this.containerEl.appendChild(style);
     const terminalContainer = document.createElement("div");
@@ -6816,6 +6826,11 @@ var TerminalView = class extends import_obsidian.ItemView {
     this.ws = new WebSocket(wsUrl);
     this.ws.onopen = () => {
       console.log("Terminal websocket connected");
+      setTimeout(() => {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({ type: "data", data: "claude --dangerously-skip-permissions\r" }));
+        }
+      }, 500);
     };
     this.ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);

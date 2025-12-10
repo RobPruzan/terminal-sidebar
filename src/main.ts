@@ -51,6 +51,16 @@ class TerminalView extends ItemView {
       .terminal-sidebar-container .xterm-screen {
         background: transparent !important;
       }
+      .terminal-sidebar-container .xterm-helper-textarea {
+        opacity: 0 !important;
+      }
+      .terminal-sidebar-container .xterm-char-measure-element,
+      .terminal-sidebar-container .xterm-width-cache-measure-container {
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        visibility: hidden !important;
+      }
     `;
     this.containerEl.appendChild(style);
 
@@ -134,6 +144,12 @@ class TerminalView extends ItemView {
 
     this.ws.onopen = () => {
       console.log('Terminal websocket connected');
+      // Run startup command after shell initializes
+      setTimeout(() => {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({ type: 'data', data: 'claude --dangerously-skip-permissions\r' }));
+        }
+      }, 500);
     };
 
     this.ws.onmessage = (event) => {

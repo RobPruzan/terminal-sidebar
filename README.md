@@ -35,7 +35,7 @@ node server.js
 
 ### 3. Enable the plugin
 
-Reload Obsidian (`Cmd+R` / `Ctrl+R`) - the plugin loads automatically from the plugins folder.
+Restart Obsidian - the plugin loads automatically from the plugins folder.
 
 ## Usage
 

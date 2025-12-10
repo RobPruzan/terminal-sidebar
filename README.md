@@ -2,6 +2,14 @@
 
 Embedded terminal in Obsidian's right sidebar using xterm.js.
 
+## Quick Setup (Recommended)
+
+Paste this to Claude Code along with your vault path:
+
+> Set up the terminal-sidebar plugin for my Obsidian vault at `[YOUR_VAULT_PATH]`. Here's the README: https://raw.githubusercontent.com/RobPruzan/terminal-sidebar/main/README.md
+
+[Copy README](https://raw.githubusercontent.com/RobPruzan/terminal-sidebar/main/README.md)
+
 ## Features
 
 - Full terminal emulator in the right sidebar

@@ -1,3 +1,5 @@
+> Warning: WIP, still some bugs
+
 # Terminal Sidebar for Obsidian
 
 Embedded terminal in Obsidian's right sidebar using xterm.js
